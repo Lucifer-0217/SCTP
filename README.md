@@ -1,97 +1,108 @@
-## 📄 `README.md` for `sctp.py`
+````markdown
+<p align="center">
+  <img src="https://www.python.org/static/community_logos/python-logo.png" height="90" alt="Python Logo"/>
+</p>
 
-```markdown
-# SCTP Protocol Layer for Scapy (`sctp.py`)
+# 🛰️ `sctp.py` – SCTP Protocol Layer for Scapy
 
-> 💣 High-Fidelity SCTP Parsing Module for Trinetra Framework  
-> 📡 Enables decoding of live telecom SS7 traffic over SCTP with precision.
-
----
-
-## 📌 Purpose
-
-The `sctp.py` module provides full **SCTP (Stream Control Transmission Protocol)** layer support for [Scapy](https://scapy.net/), enabling accurate dissection of SS7 packets transported over SCTP — such as **M3UA, SCCP, TCAP, and MAP**.
-
-It was specifically developed for **Trinetra**, a military-grade SS7 surveillance and monitoring framework used in telecom security environments.
+> ⚔️ **Military-Grade SCTP Decoding Module**  
+> 📡 Operational component of **Trinetra**, India’s telecom cyber-intelligence surveillance framework.
 
 ---
 
-## ❓ Why We Built This
+## 🎯 Mission Objective
 
-The official Scapy distribution **no longer includes `scapy.contrib.sctp`** as of 2024+. Attempts to import it result in:
+The `sctp.py` module provides high-fidelity **SCTP (Stream Control Transmission Protocol)** decoding within the [Scapy](https://scapy.net/) packet manipulation framework. It was purpose-built for **Trinetra**, a government-grade SS7 and SIGTRAN interception system designed to analyze critical telecom signaling protocols over IP networks.
 
-```
+SCTP is the backbone of **SIGTRAN**, used to transport M3UA, SCCP, TCAP, and MAP messages — essential for extracting intelligence like **IMSI**, **MSISDN**, **location updates**, **SMS forwarding**, and more.
 
+---
+
+## 🛑 Problem Statement
+
+As of 2024, `scapy.contrib.sctp` was deprecated from Scapy. Attempts to import SCTP yield:
+
+```bash
 ModuleNotFoundError: No module named 'scapy.contrib.sctp'
-
 ````
 
-Since **SCTP is the core transport protocol for SS7** over IP networks (SIGTRAN stack), this module is mission-critical for:
-
-- **Live traffic sniffing** from network interfaces
-- **Real-time decoding** of intercepted MAP messages
-- **MAP-FORWARD-SHORT-MESSAGE**, **SEND-ROUTING-INFO**, IMSI/MSC extraction, etc.
-
-Thus, this custom `sctp.py` restores full SCTP protocol dissection capability for national security tooling.
+This critically impacts telecom protocol surveillance and lawful intercept workflows where **SCTP is non-negotiable**. Without this layer, upstream decoding of SS7 (MAP/TCAP) becomes impossible.
 
 ---
 
-## ⚙️ Features
+## 🛠️ Strategic Capability
 
-| Feature | Description |
-|--------|-------------|
-| ✅ Full Chunk Parsing | Decodes all SCTP chunks (DATA, INIT, SACK, etc.) |
-| ✅ Payload Extraction | 4-byte aligned chunk payloads for downstream decoding |
-| ✅ IP + IPv6 Support | Works seamlessly with both IP versions |
-| ✅ PacketListField | Dynamically parses variable number of chunks |
-| ✅ Bindable with Scapy | Uses `bind_layers()` to integrate into Scapy's packet tree |
-| ✅ Lightweight & Fast | Pure Python, no external dependencies |
+This restored SCTP module provides a clean, bindable implementation suitable for both IPv4 and IPv6 traffic.
 
----
-
-## 🧠 How It Works
-
-1. `SCTP` packet binds to IP/IPv6 protocol 132.
-2. It extracts:
-   - Source/Destination Ports
-   - Verification Tag
-   - Checksum (CRC32C)
-   - Chunks (`SCTPChunk`)
-3. Each `SCTPChunk` includes:
-   - Chunk Type (e.g., 0 = DATA)
-   - Flags
-   - Length
-   - Payload (MAP, M3UA, etc.)
-4. Final chunk payload is handed off to Trinetra's `ss7_decode.py` module for deep telecom parsing.
+| Capability            | Description                                                 |
+| --------------------- | ----------------------------------------------------------- |
+| ✅ SCTP Header Parsing | Source port, dest port, verification tag, CRC32C checksum   |
+| ✅ Chunk Support       | Fully decodes INIT, DATA, ABORT, SACK, HEARTBEAT chunks     |
+| ✅ 4-Byte Alignment    | Required for clean dissection of telecom stack              |
+| ✅ Multi-Chunk Field   | Uses `PacketListField` for dynamic chunk parsing            |
+| ✅ Scapy Integration   | Bindable using `bind_layers()` directly to IP and IPv6      |
+| ✅ SIGTRAN-Ready       | Designed to pass payloads to M3UA/SCCP/TCAP/MAP parsers     |
+| ✅ Lightweight         | Pure Python implementation — no native libs or C extensions |
 
 ---
 
-## 🧩 Integration with Trinetra
+## 🧠 Protocol Dissection Workflow
 
-`ss7_capture.py` uses this module to enable:
+1. **Layer Binding**
+   SCTP is bound to IP and IPv6 using protocol number `132`.
 
-- 🎯 Live sniffing over `interface=Wi-Fi` or `eth0`
-- 📂 PCAP offline analysis
-- 🔁 Thread-safe decode queue
-- 💡 Real-time telecom intelligence extraction
+2. **Packet Dissection**
+   Parses:
 
-Simply load it with:
+   * Source/Destination Ports (16-bit)
+   * Verification Tag (32-bit)
+   * CRC32C (disabled by default for performance)
+
+3. **Chunk-Level Dissection**
+   Extracts:
+
+   * Chunk Type (e.g., 0x00 = DATA)
+   * Flags
+   * Length
+   * Payload
+
+4. **Payload Handoff**
+   SCTP chunk payload is passed to:
+
+   * `ss7_decode.py` for M3UA/SCCP/TCAP/MAP interpretation
+   * Logging/alerting systems for real-time threat intelligence
+
+---
+
+## 🔗 Trinetra Operational Use Cases
+
+The `sctp.py` module powers `ss7_capture.py` and other critical components for:
+
+* 🛰️ Live packet sniffing from interfaces like `eth0`, `any`, or `mon0`
+* 📁 Offline PCAP parsing in chain-of-custody environments
+* ⏱️ Streamlined decode queue for multi-protocol sessions
+* 📡 Threat detection on:
+
+  * Fake MSC/HLR Lookups
+  * MAP-FORWARD-SHORT-MESSAGE abuse
+  * IMSI Catching via SEND-ROUTING-INFO
+
+---
+
+## 💻 Usage
+
+To use this module within Scapy:
 
 ```python
 from scapy.all import load_contrib
 load_contrib("sctp")
+
 from scapy.contrib.sctp import SCTP
-````
-
----
-
-## 🧪 Testing
-
-```bash
-python -c "from scapy.all import load_contrib; load_contrib('sctp'); from scapy.contrib.sctp import SCTP; print(SCTP().summary())"
+pkt = SCTP()
+print(pkt.summary())
 ```
 
-Should return:
+Expected output:
 
 ```
 SCTP  sport=0 dport=0 tag=0 chksum=0 chunks=[]
@@ -99,41 +110,75 @@ SCTP  sport=0 dport=0 tag=0 chksum=0 chunks=[]
 
 ---
 
-## 🔐 Security Considerations
+## 📂 Installation Path
 
-* Does not auto-validate checksum (for performance).
-* Safe to use on live networks — no packet injection, only parsing.
-* Designed for **read-only sniffing**; no network write.
-
----
-
-## 🚀 Future Scope
-
-* Per-chunk class mapping (e.g., `SCTP_INIT`, `SCTP_DATA`)
-* Optional CRC32C checksum validation
-* M3UA deep parser as sibling module
-* SCTP multi-homing extensions (RFC 5061)
-
----
-
-## 🏁 Maintained By
-
-This module is maintained by the **Trinetra Security Team**, for use in government-grade SS7 interception systems.
-Contact: `amitkasbe2709@gmail.com` (placeholder)
-
----
-
-## 📂 File Location
+Make sure the file is placed at:
 
 ```
-/venv/Lib/site-packages/scapy/contrib/sctp.py
+<your-venv>/lib/pythonX.X/site-packages/scapy/contrib/sctp.py
 ```
+
+Use elevated permissions if required. You can automate this using a deployment script or CI/CD pipeline for toolchain consistency.
 
 ---
 
-## ✅ License
+## 🔐 Security Profile
 
-This file is released under the same license as Scapy: **GPL v2**
-Derived and extended from Scapy community codebase with additional enhancements.
+| Attribute           | Status                                      |
+| ------------------- | ------------------------------------------- |
+| Write-safe          | ✅ Only reads/sniffs packets                 |
+| Injection-safe      | ✅ No transmission support                   |
+| Checksum validation | 🔧 Optional CRC32C (planned)                |
+| Error resilience    | ✅ Failsafe on malformed chunks              |
+| Logging ready       | ✅ Compatible with `logger.py` / `alerts.py` |
+
+---
+
+## 🧩 Future Enhancements
+
+* 🎯 Add per-chunk parsing classes: `SCTP_DATA`, `SCTP_INIT`, `SCTP_SACK`
+* 🔍 Enable CRC32C checksum validation on demand
+* 📡 Create native M3UA decoder for Routing Context/Protocol Data
+* 📶 Add support for SCTP multi-homing (RFC 5061)
+
+---
+
+## 🛡️ Maintainer
+
+This module is maintained by the **Trinetra Cybersecurity Division**, developed under India’s strategic telecom surveillance mission.
+
+Contact:
+📧 `amitkasbe2709@gmail.com` *(placeholder – for command-level use only)*
+
+---
+
+## 📜 License
+
+This module is distributed under the **GNU General Public License v2.0**. It is a derivative of Scapy's original SCTP work, with further extensions for telecom surveillance and national defense use.
 
 ```
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty
+of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+```
+
+> 🔏 *National cyber operations–grade module. Handle with authority.*
+
+---
+
+```
+
+Let me know if you'd like this auto-generated as a `README.md` file in your environment or if you'd like the matching `sctp.py` code regenerated.
+```
+
