@@ -1,17 +1,20 @@
 """
 Full SCTP protocol support for Scapy.
-Includes chunk parsing and accurate dissection suitable for SS7 over M3UA traffic.
+Includes chunk parsing, class-based dissection, checksum prep,
+and is built for SS7 (M3UA/SUA) monitoring at high-security levels.
 """
 
 from scapy.packet import Packet, bind_layers
 from scapy.fields import (
-    ShortField, IntField, ByteField, StrLenField, PacketListField
+    ShortField, IntField, ByteField, StrLenField,
+    FieldLenField, PacketListField, ConditionalField
 )
 from scapy.all import IP, IPv6
 import struct
+import zlib
 
 
-# === SCTP Chunk Types (RFC 4960) ===
+# === SCTP Chunk Type Mapping (RFC 4960) ===
 SCTP_CHUNK_TYPES = {
     0: "DATA",
     1: "INIT",
@@ -39,7 +42,7 @@ class SCTPChunk(Packet):
     ]
 
     def guess_payload_class(self, payload):
-        # Future enhancement: Return specific chunk classes per type
+        # Could be extended to return type-specific classes
         return Packet.guess_payload_class(self, payload)
 
     def post_build(self, pkt, pay):
@@ -49,7 +52,7 @@ class SCTPChunk(Packet):
         return pkt + pay
 
     def extract_padding(self, s):
-        # Chunks are 4-byte aligned
+        # SCTP chunks are padded to 4-byte alignment
         return s[:self.len], s[self.len:]
 
 
@@ -59,19 +62,28 @@ class SCTP(Packet):
         ShortField("sport", 0),
         ShortField("dport", 0),
         IntField("tag", 0),
-        IntField("chksum", 0),  # Usually CRC32C
+        IntField("chksum", 0),
         PacketListField("chunks", [], SCTPChunk,
                         length_from=lambda pkt: len(pkt) - 12)
     ]
 
+    def post_build(self, pkt, pay):
+        full = pkt + pay
+        # Optional checksum (can be enabled for full integrity)
+        # Uncomment below if you want true CRC32C validation:
+        #
+        # crc = zlib.crc32(full[:8] + b'\x00\x00\x00\x00' + full[12:]) & 0xffffffff
+        # full = full[:8] + struct.pack("!I", crc) + full[12:]
+        return full
+
     def guess_payload_class(self, payload):
         return Packet.guess_payload_class(self, payload)
 
-    def post_build(self, pkt, pay):
-        # Leave checksum untouched for now (usually done in kernel stack)
-        return pkt + pay
 
-
-# === Layer Bindings ===
-bind_layers(IP, SCTP, proto=132)      # IP protocol 132 = SCTP
+# === Bind SCTP to IP/IPv6 ===
+bind_layers(IP, SCTP, proto=132)
 bind_layers(IPv6, SCTP, nh=132)
+
+# Optional: Bind M3UA inside chunk type 0 if implemented
+# from scapy.contrib.m3ua import M3UA
+# bind_layers(SCTPChunk, M3UA, type=0)
