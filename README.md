@@ -149,8 +149,4 @@ MA 02110-1301, USA.
 
 ---
 
-```
-
-Let me know if you'd like this auto-generated as a `README.md` file in your environment or if you'd like the matching `sctp.py` code regenerated.
-```
 
