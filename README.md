@@ -307,7 +307,7 @@ class SCTPChunkMyType(SCTPChunkBase):
 **MIT License**
 
 ```
-Copyright © 2026 Amit Kasbe 
+Copyright © 2026 Amit Kasbe Founder of Astra Animation AI
 ```
 
 **References:**
